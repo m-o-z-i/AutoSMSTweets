@@ -32,8 +32,8 @@ public class MainActivity extends Activity {
      * Register your here app https://dev.twitter.com/apps/new and get your
      * consumer key and secret
      */
-    static String TWITTER_CONSUMER_KEY = "ZOBRwGWcQAXqHRZsSIctA9Pbo";
-    static String TWITTER_CONSUMER_SECRET = "atkhfBbJ2Zq1kXEaApbKs65lxWKjmeWzdXvPxoD7SzcbJnQ0UE";
+    static String TWITTER_CONSUMER_KEY = "9CU8t9x6j3VrfTCpCklhHvRUT";
+    static String TWITTER_CONSUMER_SECRET = "I4VuCkJXv6rD1K4xKdsPvrJ9w0j7HlKOoWHa4lAbittl2yZO6M";
 
     // Preference Constants
     static String PREFERENCE_NAME = "twitter_oauth";
@@ -41,7 +41,7 @@ public class MainActivity extends Activity {
     static final String PREF_KEY_OAUTH_SECRET = "Qick0nriD5sEW2zCyiPQSelSl7iizBidnOb8Yqf9AzjOm";
     static final String PREF_KEY_TWITTER_LOGIN = "isTwitterLogedIn";
 
-    static final String TWITTER_CALLBACK_URL = "oauth://t4jsample";
+    static final String TWITTER_CALLBACK_URL = "";
 
     // Twitter oauth urls
     static final String URL_TWITTER_AUTH = "auth_url";
@@ -71,10 +71,13 @@ public class MainActivity extends Activity {
     private static SharedPreferences mSharedPreferences;
 
     // Internet Connection detector
-    private ConnectionDetector cd;
+    ConnectionDetector cd;
 
     // Alert Dialog Manager
     AlertDialogManager alert = new AlertDialogManager();
+
+    // Log TAG
+    private static final String TAG = "MyActivity";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -84,7 +87,6 @@ public class MainActivity extends Activity {
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
             StrictMode.setThreadPolicy(policy);
         }
-
 
         setContentView(R.layout.activity_main);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -101,7 +103,7 @@ public class MainActivity extends Activity {
         }
 
         // Check if twitter keys are set
-        if(TWITTER_CONSUMER_KEY.trim().length() == 0 || TWITTER_CONSUMER_SECRET.trim().length() == 0){
+        if (TWITTER_CONSUMER_KEY.trim().length() == 0 || TWITTER_CONSUMER_SECRET.trim().length() == 0) {
             // Internet Connection is not present
             alert.showAlertDialog(MainActivity.this, "Twitter oAuth tokens", "Please set your twitter oauth tokens first!", false);
             // stop executing code by return
@@ -117,8 +119,7 @@ public class MainActivity extends Activity {
         lblUserName = (TextView) findViewById(R.id.lblUserName);
 
         // Shared Preferences
-        mSharedPreferences = getApplicationContext().getSharedPreferences(
-                "MyPref", 0);
+        mSharedPreferences = getApplicationContext().getSharedPreferences("MyPref", 0);
 
 
         /**
@@ -161,7 +162,7 @@ public class MainActivity extends Activity {
                     e.putBoolean(PREF_KEY_TWITTER_LOGIN, true);
                     e.commit(); // save changes
 
-                    Log.e("Twitter OAuth Token", "> " + accessToken.getToken());
+                    Log.e(TAG, "Twitter OAuth Token: > " + accessToken.getToken());
 
                     // Hide login button
                     btnLoginTwitter.setVisibility(View.GONE);
@@ -182,7 +183,7 @@ public class MainActivity extends Activity {
                     lblUserName.setText(Html.fromHtml("<b>Welcome " + username + "</b>"));
                 } catch (Exception e) {
                     // Check log for login errors
-                    Log.e("Twitter Login Error", "> " + e.getMessage());
+                    Log.e(TAG, "Twitter Login Error: > " + e.getMessage());
                 }
             }
         }
@@ -220,29 +221,32 @@ public class MainActivity extends Activity {
      * */
     private void loginToTwitter() {
         // Check if already logged in
+        ConfigurationBuilder builder = new ConfigurationBuilder();
+        builder.setOAuthConsumerKey(TWITTER_CONSUMER_KEY);
+        builder.setOAuthConsumerSecret(TWITTER_CONSUMER_SECRET);
+        Configuration configuration = builder.build();
+
+        TwitterFactory factory = new TwitterFactory(configuration);
+        twitter = factory.getInstance();
+
+        try {
+            Log.d(TAG, "Try to get request token.");
+            requestToken = twitter.getOAuthRequestToken(TWITTER_CALLBACK_URL);
+            Log.d(TAG, "Got request token.");
+            this.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(requestToken.getAuthenticationURL())));
+        } catch (TwitterException e) {
+            Log.e(TAG, "FAILED TO GET TOKEN: > " + e.getMessage() );
+            e.printStackTrace();
+        }
         if (!isTwitterLoggedInAlready()) {
-            ConfigurationBuilder builder = new ConfigurationBuilder();
-            builder.setOAuthConsumerKey(TWITTER_CONSUMER_KEY);
-            builder.setOAuthConsumerSecret(TWITTER_CONSUMER_SECRET);
-            Configuration configuration = builder.build();
-
-            TwitterFactory factory = new TwitterFactory(configuration);
-            twitter = factory.getInstance();
-
-            try {
-                requestToken = twitter
-                        .getOAuthRequestToken(TWITTER_CALLBACK_URL);
-                this.startActivity(new Intent(Intent.ACTION_VIEW, Uri
-                        .parse(requestToken.getAuthenticationURL())));
-            } catch (TwitterException e) {
-                e.printStackTrace();
-            }
         } else {
             // user already logged into twitter
             Toast.makeText(getApplicationContext(),
                     "Already Logged into twitter", Toast.LENGTH_LONG).show();
         }
     }
+
+
 
     /**
      * Check user already logged in your application using twitter Login flag is
@@ -276,7 +280,7 @@ public class MainActivity extends Activity {
          * getting Places JSON
          * */
         protected String doInBackground(String... args) {
-            Log.d("Tweet Text", "> " + args[0]);
+            Log.d(TAG, "Tweet Text > " + args[0]);
             String status = args[0];
             try {
                 ConfigurationBuilder builder = new ConfigurationBuilder();
@@ -322,6 +326,9 @@ public class MainActivity extends Activity {
                 }
             });
         }
+
     }
+
+
 };
 
