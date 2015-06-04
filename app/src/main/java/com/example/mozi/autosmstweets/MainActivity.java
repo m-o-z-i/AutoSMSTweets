@@ -13,13 +13,18 @@ import twitter4j.conf.ConfigurationBuilder;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.provider.Telephony;
+import android.telephony.SmsMessage;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -68,6 +73,12 @@ public class MainActivity extends Activity implements OnClickListener {
         super.onCreate(savedInstanceState);
 
         Log.d(TAG, "APPLICATION STARTS...");
+
+
+        String SMS_RECEIVED = "android.provider.Telephony.SMS_RECEIVED";
+        SmsListener smsListener = new SmsListener();
+        registerReceiver(smsListener, new IntentFilter(SMS_RECEIVED));
+
 
 		/* initializing twitter parameters from string.xml */
         initTwitterConfigs();
@@ -334,3 +345,4 @@ public class MainActivity extends Activity implements OnClickListener {
 
     }
 }
+
