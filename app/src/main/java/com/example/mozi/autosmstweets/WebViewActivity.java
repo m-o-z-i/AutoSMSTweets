@@ -12,6 +12,9 @@ public class WebViewActivity extends Activity {
 
     private WebView webView;
 
+    // Log TAG
+    private static final String TAG = "MyActivity";
+
     public static String EXTRA_URL = "extra_url";
 
     @Override
@@ -24,7 +27,7 @@ public class WebViewActivity extends Activity {
 
         final String url = this.getIntent().getStringExtra(EXTRA_URL);
         if (null == url) {
-            Log.e("Twitter", "URL cannot be null");
+            Log.e(TAG, "Twitter: URL cannot be null > ");
             finish();
         }
 

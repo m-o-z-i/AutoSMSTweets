@@ -59,12 +59,15 @@ public class MainActivity extends Activity implements OnClickListener {
     private String callbackUrl = null;
     private String oAuthVerifier = null;
 
-
+    // Log TAG
+    private static final String TAG = "MyActivity";
 
     @SuppressLint("NewApi")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Log.d(TAG, "APPLICATION STARTS...");
 
 		/* initializing twitter parameters from string.xml */
         initTwitterConfigs();
@@ -89,8 +92,11 @@ public class MainActivity extends Activity implements OnClickListener {
         if (TextUtils.isEmpty(consumerKey) || TextUtils.isEmpty(consumerSecret)) {
             Toast.makeText(this, "Twitter key and secret not configured",
                     Toast.LENGTH_SHORT).show();
+            Log.d(TAG, " Twitter key and secret not configured ");
             return;
         }
+        Log.d(TAG, "Twitter key confugigured...");
+
 
 		/* Initialize application preferences */
         mSharedPreferences = getSharedPreferences(PREF_NAME, 0);
@@ -99,6 +105,7 @@ public class MainActivity extends Activity implements OnClickListener {
 
 		/*  if already logged in, then hide login layout and show share layout */
         if (isLoggedIn) {
+            Log.d(TAG, "allready logged in...");
             loginLayout.setVisibility(View.GONE);
             shareLayout.setVisibility(View.VISIBLE);
 
@@ -107,6 +114,8 @@ public class MainActivity extends Activity implements OnClickListener {
                     + username);
 
         } else {
+            Log.d(TAG, "login...");
+
             loginLayout.setVisibility(View.VISIBLE);
             shareLayout.setVisibility(View.GONE);
 
@@ -115,6 +124,8 @@ public class MainActivity extends Activity implements OnClickListener {
             if (uri != null && uri.toString().startsWith(callbackUrl)) {
 
                 String verifier = uri.getQueryParameter(oAuthVerifier);
+                Log.d(TAG, "try to login...");
+
 
                 try {
 
@@ -134,7 +145,7 @@ public class MainActivity extends Activity implements OnClickListener {
                     userName.setText(getString(R.string.hello) + username);
 
                 } catch (Exception e) {
-                    Log.e("Failed to login Twitter!!", e.getMessage());
+                    Log.e(TAG, "Failed to login Twitter!! > " + e.getMessage());
                 }
             }
 
@@ -165,7 +176,7 @@ public class MainActivity extends Activity implements OnClickListener {
             e.commit();
 
         } catch (TwitterException e1) {
-            e1.printStackTrace();
+            Log.d(TAG, "Failed to store oAuth tokens: > " + e1.getMessage());
         }
     }
 
@@ -179,6 +190,8 @@ public class MainActivity extends Activity implements OnClickListener {
 
 
     private void loginToTwitter() {
+        Log.d(TAG, "loginToTwitter()...");
+
         boolean isLoggedIn = mSharedPreferences.getBoolean(PREF_KEY_TWITTER_LOGIN, false);
 
         if (!isLoggedIn) {
@@ -190,7 +203,9 @@ public class MainActivity extends Activity implements OnClickListener {
             final TwitterFactory factory = new TwitterFactory(configuration);
             twitter = factory.getInstance();
 
+            Log.d(TAG, "loginToTwitter()2...");
             try {
+                Log.d(TAG, "loginToTwitter()3...");
                 requestToken = twitter.getOAuthRequestToken(callbackUrl);
 
                 /**
@@ -200,11 +215,13 @@ public class MainActivity extends Activity implements OnClickListener {
                 final Intent intent = new Intent(this, WebViewActivity.class);
                 intent.putExtra(WebViewActivity.EXTRA_URL, requestToken.getAuthenticationURL());
                 startActivityForResult(intent, WEBVIEW_REQUEST_CODE);
+                Log.d(TAG, "loginToTwitter()4...");
 
             } catch (TwitterException e) {
-                e.printStackTrace();
+                Log.d(TAG, "Failed to load login page: > " + e.getMessage());
             }
         } else {
+            Log.d(TAG, "loginToTwitter()5...");
 
             loginLayout.setVisibility(View.GONE);
             shareLayout.setVisibility(View.VISIBLE);
@@ -231,7 +248,7 @@ public class MainActivity extends Activity implements OnClickListener {
                         R.string.hello) + username);
 
             } catch (Exception e) {
-                Log.e("Twitter Login Failed", e.getMessage());
+                Log.e(TAG, "Twitter Login Failed  > "+ e.getMessage());
             }
         }
 
@@ -260,6 +277,9 @@ public class MainActivity extends Activity implements OnClickListener {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+
+            Log.d(TAG, "Posting to twitter...");
+
 
             pDialog = new ProgressDialog(MainActivity.this);
             pDialog.setMessage("Posting to twitter...");
@@ -291,7 +311,7 @@ public class MainActivity extends Activity implements OnClickListener {
 
                 twitter4j.Status response = twitter.updateStatus(statusUpdate);
 
-                Log.d("Status", response.getText());
+                Log.d(TAG, "Status  > "+ response.getText());
 
             } catch (TwitterException e) {
                 Log.d("Failed to post!", e.getMessage());
