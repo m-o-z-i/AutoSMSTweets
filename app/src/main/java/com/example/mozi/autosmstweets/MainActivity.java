@@ -110,8 +110,7 @@ public class MainActivity extends Activity implements OnClickListener {
             shareLayout.setVisibility(View.VISIBLE);
 
             String username = mSharedPreferences.getString(PREF_USER_NAME, "");
-            userName.setText(getResources ().getString(R.string.hello)
-                    + username);
+            userName.setText(getResources ().getString(R.string.hello) +", " + username);
 
         } else {
             Log.d(TAG, "login...");
@@ -128,7 +127,6 @@ public class MainActivity extends Activity implements OnClickListener {
 
 
                 try {
-
 					/* Getting oAuth authentication token */
                     AccessToken accessToken = twitter.getOAuthAccessToken(requestToken, verifier);
 
@@ -142,7 +140,7 @@ public class MainActivity extends Activity implements OnClickListener {
 
                     loginLayout.setVisibility(View.GONE);
                     shareLayout.setVisibility(View.VISIBLE);
-                    userName.setText(getString(R.string.hello) + username);
+                    userName.setText(getString(R.string.hello) + ", " + username);
 
                 } catch (Exception e) {
                     Log.e(TAG, "Failed to login Twitter!! > " + e.getMessage());
@@ -175,8 +173,9 @@ public class MainActivity extends Activity implements OnClickListener {
             e.putString(PREF_USER_NAME, username);
             e.commit();
 
-        } catch (TwitterException e1) {
-            Log.d(TAG, "Failed to store oAuth tokens: > " + e1.getMessage());
+        } catch (TwitterException e) {
+            Log.d(TAG, "Failed to store oAuth tokens: > " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -203,9 +202,7 @@ public class MainActivity extends Activity implements OnClickListener {
             final TwitterFactory factory = new TwitterFactory(configuration);
             twitter = factory.getInstance();
 
-            Log.d(TAG, "loginToTwitter()2...");
             try {
-                Log.d(TAG, "loginToTwitter()3...");
                 requestToken = twitter.getOAuthRequestToken(callbackUrl);
 
                 /**
@@ -215,14 +212,14 @@ public class MainActivity extends Activity implements OnClickListener {
                 final Intent intent = new Intent(this, WebViewActivity.class);
                 intent.putExtra(WebViewActivity.EXTRA_URL, requestToken.getAuthenticationURL());
                 startActivityForResult(intent, WEBVIEW_REQUEST_CODE);
-                Log.d(TAG, "loginToTwitter()4...");
 
-            } catch (TwitterException e) {
+            } catch (Exception e) {
                 Log.d(TAG, "Failed to load login page: > " + e.getMessage());
+                e.printStackTrace();
             }
-        } else {
-            Log.d(TAG, "loginToTwitter()5...");
 
+
+        } else {
             loginLayout.setVisibility(View.GONE);
             shareLayout.setVisibility(View.VISIBLE);
         }
@@ -266,8 +263,11 @@ public class MainActivity extends Activity implements OnClickListener {
 
                 if (status.trim().length() > 0) {
                     new updateTwitterStatus().execute(status);
+                } else if (status.trim().length() > 140) {
+                    Log.d(TAG, "Message is too long!!");
                 } else {
                     Toast.makeText(this, "Message is empty!!", Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "Message is empty!!");
                 }
                 break;
         }
@@ -306,15 +306,16 @@ public class MainActivity extends Activity implements OnClickListener {
 
                 // Update status
                 StatusUpdate statusUpdate = new StatusUpdate(status);
-                InputStream is = getResources().openRawResource(R.drawable.lakeside_view);
-                statusUpdate.setMedia("test.jpg", is);
+//                InputStream is = getResources().openRawResource(R.drawable.lakeside_view);
+//                statusUpdate.setMedia("test.jpg", is);
 
                 twitter4j.Status response = twitter.updateStatus(statusUpdate);
 
                 Log.d(TAG, "Status  > "+ response.getText());
 
             } catch (TwitterException e) {
-                Log.d("Failed to post!", e.getMessage());
+                Log.d(TAG, "Failed to post!"+ e.getMessage());
+                e.printStackTrace();
             }
             return null;
         }

@@ -26,6 +26,9 @@
                     android:scheme="oauth" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="com.example.mozi.autosmstweets.WebViewActivity"
+            android:label="@string/app_name" />
     </application>
 
     <!-- Permission - Internet Connect -->
