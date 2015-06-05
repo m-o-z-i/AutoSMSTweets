@@ -20,6 +20,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.net.Uri;
+import android.nfc.Tag;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
@@ -64,6 +65,8 @@ public class MainActivity extends Activity implements OnClickListener {
     private String callbackUrl = null;
     private String oAuthVerifier = null;
 
+    private SmsListener receiver;
+
     // Log TAG
     private static final String TAG = "MyActivity";
 
@@ -75,9 +78,11 @@ public class MainActivity extends Activity implements OnClickListener {
         Log.d(TAG, "APPLICATION STARTS...");
 
 
-        String SMS_RECEIVED = "android.provider.Telephony.SMS_RECEIVED";
-        SmsListener smsListener = new SmsListener();
-        registerReceiver(smsListener, new IntentFilter(SMS_RECEIVED));
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("android.provider.Telephony.SMS_RECEIVED");
+        receiver = new SmsListener();
+        registerReceiver(receiver, filter);
+        Log.d(TAG, "SmsListener init...");
 
 
 		/* initializing twitter parameters from string.xml */
@@ -284,9 +289,13 @@ public class MainActivity extends Activity implements OnClickListener {
         }
     }
 
-    class updateTwitterStatus extends AsyncTask<String, String, Void> {
+    public void postSMS(String text){
+        new updateTwitterStatus().execute(text);
+    }
+
+    class  updateTwitterStatus extends AsyncTask<String, String, Void> {
         @Override
-        protected void onPreExecute() {
+        public void onPreExecute() {
             super.onPreExecute();
 
             Log.d(TAG, "Posting to twitter...");
@@ -299,7 +308,7 @@ public class MainActivity extends Activity implements OnClickListener {
             pDialog.show();
         }
 
-        protected Void doInBackground(String... args) {
+        public Void doInBackground(String... args) {
 
             String status = args[0];
             try {
@@ -332,7 +341,7 @@ public class MainActivity extends Activity implements OnClickListener {
         }
 
         @Override
-        protected void onPostExecute(Void result) {
+        public void onPostExecute(Void result) {
 
 			/* Dismiss the progress dialog after sharing */
             pDialog.dismiss();
@@ -343,6 +352,26 @@ public class MainActivity extends Activity implements OnClickListener {
             mShareEditText.setText("");
         }
 
+    }
+    public class SmsListener extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d("MyActivity", "incoming message: ");
+            try {
+                if (Telephony.Sms.Intents.SMS_RECEIVED_ACTION.equals(intent.getAction())) {
+                    Log.d("MyActivity", "incoming message: ");
+                    for (SmsMessage smsMessage : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
+                        String messageBody = smsMessage.getMessageBody();
+                        Log.d("MyActivity", "incoming message: " + messageBody);
+                        postSMS(messageBody);
+                    }
+                }
+            }catch (Exception e){
+                Log.d(TAG, "failed to receive sms  > " + e.getMessage());
+            }
+
+        }
     }
 }
 
