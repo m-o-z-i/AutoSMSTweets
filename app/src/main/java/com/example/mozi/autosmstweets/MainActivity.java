@@ -2,6 +2,8 @@ package com.example.mozi.autosmstweets;
 
 import java.io.InputStream;
 import java.net.CookieManager;
+import java.util.ArrayList;
+import java.util.List;
 
 import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
@@ -55,6 +57,7 @@ public class MainActivity extends Activity implements OnClickListener {
     private ProgressDialog pDialog;
 
     private static Twitter twitter;
+    private static boolean isLoogedOut = true;
     private static RequestToken requestToken;
 
     private static SharedPreferences mSharedPreferences;
@@ -127,6 +130,7 @@ public class MainActivity extends Activity implements OnClickListener {
 		/*  if already logged in, then hide login layout and show share layout */
         if (isLoggedIn) {
             Log.d(TAG, "allready logged in...");
+            isLoogedOut = false;
             loginLayout.setVisibility(View.GONE);
             shareLayout.setVisibility(View.VISIBLE);
 
@@ -212,6 +216,7 @@ public class MainActivity extends Activity implements OnClickListener {
     private void loginToTwitter() {
         Log.d(TAG, "loginToTwitter()...");
 
+
         boolean isLoggedIn = mSharedPreferences.getBoolean(PREF_KEY_TWITTER_LOGIN, false);
 
         if (!isLoggedIn) {
@@ -234,6 +239,8 @@ public class MainActivity extends Activity implements OnClickListener {
                 final Intent intent = new Intent(this, WebViewActivity.class);
                 intent.putExtra(WebViewActivity.EXTRA_URL, requestToken.getAuthenticationURL());
                 startActivityForResult(intent, WEBVIEW_REQUEST_CODE);
+
+                isLoogedOut = false;
 
             } catch (Exception e) {
                 Log.d(TAG, "Failed to load login page: > " + e.getMessage());
@@ -296,16 +303,31 @@ public class MainActivity extends Activity implements OnClickListener {
     }
 
     public void postSMS(String text){
-        if (text.trim().length() > 0) {
-            new updateTwitterStatus().execute(text);
-        } else if (text.trim().length() > 140) {
-            Toast.makeText(this, "Message is too long", Toast.LENGTH_SHORT).show();
-            Log.d(TAG, "Message is too long!!");
-        } else {
-            Toast.makeText(this, "Message is empty!!", Toast.LENGTH_SHORT).show();
-            Log.d(TAG, "Message is empty!!");
+        if (!isLoogedOut){
+            if (text.trim().length() == 0){
+                Toast.makeText(this, "Message is empty!!", Toast.LENGTH_SHORT).show();
+                Log.d(TAG, "Message is empty!!");
+            } else if (text.trim().length() > 0 && text.trim().length() < 140) {
+                new updateTwitterStatus().execute(text);
+            } else {
+                for (String s : getParts(text, 140)){
+                    new updateTwitterStatus().execute(s);
+                    Log.d(TAG, "mesage!!: " + s);
+                }
+                Toast.makeText(this, "Message is splitted", Toast.LENGTH_SHORT).show();
+                Log.d(TAG, "Message is splitted!!");
+            }
         }
-        new updateTwitterStatus().execute(text);
+    }
+
+    private static List<String> getParts(String string, int partitionSize) {
+        List<String> parts = new ArrayList<String>();
+        int len = string.length();
+        for (int i=0; i<len; i+=partitionSize)
+        {
+            parts.add(string.substring(i, Math.min(len, i + partitionSize)));
+        }
+        return parts;
     }
 
     public void logoutButtonKlicked(View view) {
@@ -313,6 +335,9 @@ public class MainActivity extends Activity implements OnClickListener {
         edit.clear();
         edit.commit();
 
+        isLoogedOut = true;
+
+        twitter.setOAuthAccessToken(null);
 
         loginLayout.setVisibility(View.VISIBLE);
         shareLayout.setVisibility(View.GONE);
@@ -329,7 +354,7 @@ public class MainActivity extends Activity implements OnClickListener {
             pDialog = new ProgressDialog(MainActivity.this);
             pDialog.setMessage("Posting to twitter...");
             pDialog.setIndeterminate(false);
-            pDialog.setCancelable(false);
+            pDialog.setCancelable(true);
             pDialog.show();
         }
 
