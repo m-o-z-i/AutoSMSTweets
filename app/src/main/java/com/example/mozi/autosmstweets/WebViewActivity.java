@@ -47,6 +47,7 @@ public class WebViewActivity extends Activity {
 
 				/* Sending results back */
                 String verifier = uri.getQueryParameter(getString(R.string.twitter_oauth_verifier));
+                Log.d(TAG, " verifier: " + verifier);
                 Intent resultIntent = new Intent();
                 resultIntent.putExtra(getString(R.string.twitter_oauth_verifier), verifier);
                 setResult(RESULT_OK, resultIntent);

@@ -5,7 +5,7 @@
     <string name="app_name">AutoSMSTweets</string>
     <string name="action_settings">Settings</string>
     <string name="hello">Hello </string>
-    <string name="login_instructions">Login to twiter</string>
+    <string name="login_instructions">Please login to twitter</string>
     <string name="share_instructions">Enter share message</string>
     <string name="btn_login">Login to Twitter</string>
     <string name="btn_share">Share</string>
@@ -15,5 +15,6 @@
     <string name="twitter_consumer_key">9CU8t9x6j3VrfTCpCklhHvRUT</string>
     <string name="twitter_consumer_secret">I4VuCkJXv6rD1K4xKdsPvrJ9w0j7HlKOoWHa4lAbittl2yZO6M</string>
     <string name="twitter_oauth_verifier">oauth_verifier</string>
+    <string name="logoutButton">logoutButton</string>
     <!-- End Configurations -->
 </resources>

@@ -1,6 +1,8 @@
 package com.example.mozi.autosmstweets;
 
 import java.io.InputStream;
+import java.net.CookieManager;
+
 import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -24,12 +26,14 @@ import android.nfc.Tag;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.provider.SyncStateContract;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.webkit.CookieSyncManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -66,6 +70,7 @@ public class MainActivity extends Activity implements OnClickListener {
     private String oAuthVerifier = null;
 
     private SmsListener receiver;
+
 
     // Log TAG
     private static final String TAG = "MyActivity";
@@ -139,7 +144,7 @@ public class MainActivity extends Activity implements OnClickListener {
             if (uri != null && uri.toString().startsWith(callbackUrl)) {
 
                 String verifier = uri.getQueryParameter(oAuthVerifier);
-                Log.d(TAG, "try to login...");
+                Log.d(TAG, "try to login..." + verifier );
 
 
                 try {
@@ -216,6 +221,7 @@ public class MainActivity extends Activity implements OnClickListener {
 
             final Configuration configuration = builder.build();
             final TwitterFactory factory = new TwitterFactory(configuration);
+
             twitter = factory.getInstance();
 
             try {
@@ -258,7 +264,7 @@ public class MainActivity extends Activity implements OnClickListener {
                 loginLayout.setVisibility(View.GONE);
                 shareLayout.setVisibility(View.VISIBLE);
                 userName.setText(MainActivity.this.getResources().getString(
-                        R.string.hello) + username);
+                        R.string.hello) + ", " + username);
 
             } catch (Exception e) {
                 Log.e(TAG, "Twitter Login Failed  > "+ e.getMessage());
@@ -290,7 +296,26 @@ public class MainActivity extends Activity implements OnClickListener {
     }
 
     public void postSMS(String text){
+        if (text.trim().length() > 0) {
+            new updateTwitterStatus().execute(text);
+        } else if (text.trim().length() > 140) {
+            Toast.makeText(this, "Message is too long", Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "Message is too long!!");
+        } else {
+            Toast.makeText(this, "Message is empty!!", Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "Message is empty!!");
+        }
         new updateTwitterStatus().execute(text);
+    }
+
+    public void logoutButtonKlicked(View view) {
+        final Editor edit = mSharedPreferences.edit();
+        edit.clear();
+        edit.commit();
+
+
+        loginLayout.setVisibility(View.VISIBLE);
+        shareLayout.setVisibility(View.GONE);
     }
 
     class  updateTwitterStatus extends AsyncTask<String, String, Void> {
