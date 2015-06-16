@@ -355,8 +355,6 @@ public class MainActivity extends Activity implements OnClickListener {
 
         isLoogedOut = true;
 
-        twitter.setOAuthAccessToken(null);
-
         loginLayout.setVisibility(View.VISIBLE);
         shareLayout.setVisibility(View.GONE);
     }
