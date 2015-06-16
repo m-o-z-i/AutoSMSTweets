@@ -3,6 +3,8 @@ package com.example.mozi.autosmstweets;
 import java.io.InputStream;
 import java.net.CookieManager;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import twitter4j.StatusUpdate;
@@ -307,13 +309,29 @@ public class MainActivity extends Activity implements OnClickListener {
             if (text.trim().length() == 0){
                 Toast.makeText(this, "Message is empty!!", Toast.LENGTH_SHORT).show();
                 Log.d(TAG, "Message is empty!!");
-            } else if (text.trim().length() > 0 && text.trim().length() < 140) {
+            } else if (text.trim().length() > 0 && text.trim().length() <= 140) {
                 new updateTwitterStatus().execute(text);
             } else {
-                for (String s : getParts(text, 140)){
-                    new updateTwitterStatus().execute(s);
-                    Log.d(TAG, "mesage!!: " + s);
+
+                List<String> messages;
+                if (text.trim().length() <= 2*140-6) {
+                    messages = getParts(text, 137);
+                } else {
+                    messages = getParts(text, 134);
                 }
+                Collections.reverse(messages);
+                for (int i = 0; i < messages.size(); ++i){
+                    String post = messages.get(i);
+                    if ( i == 0){
+                        post = "..." + post;
+                    } else if ( i == messages.size()-1){
+                        post = post + "...";
+                    } else {
+                        post = "..." + post + "...";
+                    }
+                    new updateTwitterStatus().execute(post);
+                }
+
                 Toast.makeText(this, "Message is splitted", Toast.LENGTH_SHORT).show();
                 Log.d(TAG, "Message is splitted!!");
             }
