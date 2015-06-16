@@ -338,6 +338,13 @@ public class MainActivity extends Activity implements OnClickListener {
         }
     }
 
+    public void sendTestSMSClicked(View view) {
+        String test = "111n Sprachen. Die Wikipedia ist gegenwärtig das meistbenutzte Onl1ne-Nachschlagewerk und liegt auf Platz sechs der weltweit me1stbesuche111" +
+                      "222n Sprachen. Die Wikipedia ist gegenwärtig das meistbenutzte Onl1ne-Nachschlagewerk und liegt auf Platz sechs der weltweit me1stbesuche222";
+
+        postSMS(test);
+    }
+
     private static List<String> getParts(String string, int partitionSize) {
         List<String> parts = new ArrayList<String>();
         int len = string.length();
